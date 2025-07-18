@@ -5,6 +5,24 @@ plugins {
     id "dev.flutter.flutter-gradle-plugin"
 }
 
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file('local.properties')
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withReader('UTF-8') { reader ->
+        localProperties.load(reader)
+    }
+}
+
+def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
+if (flutterVersionCode == null) {
+    flutterVersionCode = '1'
+}
+
+def flutterVersionName = localProperties.getProperty('flutter.versionName')
+if (flutterVersionName == null) {
+    flutterVersionName = '1.0'
+}
+
 android {
     namespace = "com.example.garbage_truck"
     compileSdk = flutter.compileSdkVersion
@@ -26,8 +44,9 @@ android {
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
+        versionCode = flutterVersionCode.toInteger()
+        versionName = flutterVersionName
+        manifestPlaceholders = [GOOGLE_MAPS_API_KEY: localProperties.getProperty('GOOGLE_MAPS_API_KEY')]
     }
 
     buildTypes {
@@ -38,13 +57,6 @@ android {
         }
     }
 }
-
-task injectKeys(type: Exec) {
-    workingDir "${project.rootDir}/.."
-    commandLine "./inject_keys.sh"
-}
-
-preBuild.dependsOn injectKeys
 
 flutter {
     source = "../.."
